@@ -14,7 +14,6 @@ int main() {
   allUsers.printUsers();
   loginMenu(allUsers);
 
-
   return 0;
 }
 
@@ -46,7 +45,34 @@ void read_users(UserTree &allUsers){
 
 // function to confirm that the user has an account and they have the right password
 bool confirmUser(UserTree &allUsers, std::string username, std::string password){
-  
+  UserNode *user = allUsers.search(username);
+  if (!user){
+    std::cout << "That user does not exist in our database. Please try again." << std::endl;
+    return false;
+  }
+  else{
+    if (user->password != password){
+      std::cout << "That password is incorrect. Please try again." << std::endl;
+      return false;
+    }
+    else{
+      std::cout << "Login Successful." << std::endl;
+      return true;
+    }
+  }
+}
+
+
+void createUser(UserTree &allUsers, std::string username, std::string password){
+  std::string addData = username + ',' + password;
+  std::ofstream myfile;
+  myfile.open("users.txt", std::ios_base::app);
+  if(myfile.is_open()){
+    myfile << addData;
+  }
+  myfile.close();
+
+  allUsers.addUser(username, password);
 }
 
 
@@ -55,21 +81,25 @@ void loginMenu(UserTree &allUsers){
   std::string userChoice;
   std::string username;
   std::string password;
-  std::bool flag = true; // for confirming their account login info
+  bool flag = false; // for confirming their account login info
   std::cout << "Please login or create a new account" << std::endl;
   std::cout << "1) Login" << std::endl;
   std::cout << "2) Create a new account" << std::endl;
   getline(std::cin, userChoice);
   if (stoi(userChoice) == 1){
-    while(flag){
+    while(flag == false){
       std::cout << "Please enter username: " << std::endl;
       getline(std::cin, username);
       std::cout << "Please enter password: " << std::endl;
       getline(std::cin, password);
-      confirmUser(allUsers, username, password);
+      flag = confirmUser(allUsers, username, password);
     }
   }
   else{
-    std::cout << "Create a new user" << std::endl;
+    std::cout << "Please enter preferred username: " << std::endl;
+    getline(std::cin, username);
+    std::cout << "Please enter preferred password: " << std::endl;
+    getline(std::cin, password);
+    createUser(allUsers, username, password);
   }
 }

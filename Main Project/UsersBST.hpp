@@ -21,11 +21,10 @@ class UserTree{
     UserTree();
     ~UserTree();
     void addUser(std::string, std::string);
-    void findUser();
     void printUsers();
+    UserNode *search(std::string);
 
   private:
-    UserNode *search();
     UserNode *createNewUser(std::string, std::string);
     // pointer to the root node
     UserNode *root;

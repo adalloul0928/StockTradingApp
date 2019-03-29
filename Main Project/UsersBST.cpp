@@ -58,13 +58,24 @@ void UserTree::addUser(std::string _username, std::string _password){
 }
 
 
-void UserTree::findUser(){
-
+UserNode* findUser(UserNode *root, std::string _username){
+  if (!root) return NULL;
+  if (root->username == _username){
+    return root;
+  }
+  else if (root->username > _username){
+    return findUser(root->leftChild, _username);
+  }
+  else{
+    return findUser(root->rightChild, _username);
+  }
 }
 
 
-UserNode *UserTree::search(){
-
+UserNode *UserTree::search(std::string _username){
+  if (!root) return NULL;
+  UserNode *user = findUser(root, _username);
+  return user;
 }
 
 
