@@ -12,19 +12,21 @@ struct UserNode{
   UserNode *rightChild = nullptr;
 
   UserNode(){}; // default constructor
-  UserNode(std::string _username, std::string _password){:username(_username),
-     password(_password)}; // parameterized constructor
+  UserNode(std::string _username, std::string _password):username(_username),
+     password(_password) {}; // parameterized constructor
 };
 
 class UserTree{
   public:
     UserTree();
     ~UserTree();
-    void addUser();
+    void addUser(std::string, std::string);
     void findUser();
+    void printUsers();
 
   private:
     UserNode *search();
+    UserNode *createNewUser(std::string, std::string);
     // pointer to the root node
     UserNode *root;
-}
+};
