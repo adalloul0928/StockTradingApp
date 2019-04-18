@@ -21,8 +21,8 @@ UserTree::~UserTree(){
 }
 
 
-UserNode * UserTree::createNewUser(std::string _username, std::string _password){
-  UserNode *newUser = new UserNode(_username, _password);
+UserNode * UserTree::createNewUser(std::string _username, std::string _password, float _balance){
+  UserNode *newUser = new UserNode(_username, _password, _balance);
   return newUser;
 }
 
@@ -47,8 +47,8 @@ void addHelper(UserNode *root, UserNode *newUser){
 }
 
 
-void UserTree::addUser(std::string _username, std::string _password){
-  UserNode *newUser = createNewUser(_username, _password);
+void UserTree::addUser(std::string _username, std::string _password, float _balance){
+  UserNode *newUser = createNewUser(_username, _password, _balance);
   if (root == NULL){
     root = newUser;
   }
@@ -94,5 +94,26 @@ void UserTree::printUsers(){
   }
   else{
     printHelper(root);
+  }
+}
+
+
+void UserTree::addStock(std::string username, std::string ticker, int numStocks, float purchasePrice, float spotPrice){
+  UserNode *tempUser = search(username);
+  Stock tempStock(ticker, numStocks, purchasePrice, spotPrice);
+  tempUser->stocks.push_back(tempStock);
+}
+
+
+void UserTree::printStocks(std::string user){
+  UserNode *tempUser = search(user);
+  Stock tempStock;
+  std::cout << "---------------------USER SUMMARY---------------------" << std::endl << std::endl;
+  for (int x = 0; x < tempUser->stocks.size(); x++){
+    tempStock = tempUser->stocks[x];
+    std::cout << "Ticker: " << tempStock.ticker << std::endl;
+    std::cout << "Number of Stock: " << tempStock.numStocks << std::endl;
+    std::cout << "Purchase Price: " << tempStock.purchasePrice << std::endl;
+    std::cout << "Spot Price: " << tempStock.spotPrice << std::endl << std::endl;
   }
 }
