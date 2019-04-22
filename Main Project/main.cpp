@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <stdlib.h>
 #include "UsersBST.hpp"
 
 // cd github/Final-Project/"Main Project"
@@ -9,17 +10,24 @@
 
 void read_users(UserTree &allUsers, std::vector <std::string> &);
 void writeFile(UserTree &allUsers, std::vector <std::string>);
-UserNode* loginMenu(UserTree &allUsers);
+UserNode* loginMenu(UserTree &allUsers, std::vector <std::string> &);
+void mainMenu(UserNode &mainUser);
+void mainMenuDisplay();
 
 int main() {
+  system("python updateTextFile.py");
   UserTree allUsers;
   std::vector <std::string> userList;
   read_users(allUsers, userList);
-  //allUsers.printUsers();
+
   UserNode *mainUser;
-  mainUser = loginMenu(allUsers);
-  allUsers.printStocks(mainUser->username);
+  mainUser = loginMenu(allUsers, userList);
+  mainMenu(*mainUser);
+
   writeFile(allUsers, userList);
+
+  //allUsers.printUsers();
+  //allUsers.printStocks(mainUser->username);
   return 0;
 }
 
@@ -94,24 +102,12 @@ bool confirmUser(UserTree &allUsers, std::string username, std::string password)
 }
 
 
-void createUser(UserTree &allUsers, std::string username, std::string password, float balance){
-  std::string addData = username + ',' + password;
-  std::ofstream myfile;
-  myfile.open("users.txt", std::ios_base::app);
-  if(myfile.is_open()){
-    myfile << addData;
-  }
-  myfile.close();
-
-  allUsers.addUser(username, password, balance);
-}
-
-
 // login menu for users or to create a new account
-UserNode* loginMenu(UserTree &allUsers){
+UserNode* loginMenu(UserTree &allUsers, std::vector <std::string> &userList){
   std::string userChoice;
   std::string username;
   std::string password;
+  float balance = 1000;
   bool flag = false; // for confirming their account login info
   std::cout << "Please login or create a new account" << std::endl;
   std::cout << "1) Login" << std::endl;
@@ -125,6 +121,7 @@ UserNode* loginMenu(UserTree &allUsers){
       getline(std::cin, password);
       flag = confirmUser(allUsers, username, password);
       if (flag){
+        std::cout << "Welcome " << username << std::endl;
         return allUsers.search(username);
       }
     }
@@ -134,15 +131,18 @@ UserNode* loginMenu(UserTree &allUsers){
     getline(std::cin, username);
     std::cout << "Please enter preferred password: " << std::endl;
     getline(std::cin, password);
-    float balance = 1000;
-    createUser(allUsers, username, password, balance);
+
+    allUsers.addUser(username, password, balance);
+    userList.push_back(username);
+    std::cout << "Welcome " << username << std::endl;
+    return allUsers.search(username);
   }
 }
 
 
 void writeFile(UserTree &allUsers, std::vector <std::string> userList){
   std::ofstream outfile;
-  outfile.open("outputUsers.txt");
+  outfile.open("users.txt");
   if(outfile.is_open()){
     std::string line; // input that stores the next username or passsword
     std::string temp; // temp variable to store ints and floats
@@ -163,7 +163,7 @@ void writeFile(UserTree &allUsers, std::vector <std::string> userList){
       //std::cout << "Password: " << password << std::endl;
       balance = temp->balance;
       output = username + ',' + password + ',' + std::to_string(balance);
-      if (temp->stocks.size()<1){
+      if (temp->stocks.size()>=1){
         output += ',';
       }
       //std::cout << "Balance: " << balance << std::endl;
@@ -189,5 +189,83 @@ void writeFile(UserTree &allUsers, std::vector <std::string> userList){
   }
   else{
     std::cout << "Error writing to file" << std::endl;
+  }
+}
+
+float getPrice(std::string ticker){
+  std::string price;
+  system(("python currentStockPrice.py " + ticker).c_str());
+  std::ifstream myfile;
+  myfile.open("tempFile.txt");
+  if(myfile.is_open()){
+    getline(myfile, price);
+  }
+  myfile.close();
+  float floatStockPrice = stof(price);
+  return floatStockPrice;
+}
+
+
+void mainMenuDisplay(){
+  std::cout << "1. Account Details" << std::endl;
+  std::cout << "2. Purchase Stock" << std::endl;
+  std::cout << "3. Sell Stock" << std::endl;
+  std::cout << "4. Stock Lookup" << std::endl;
+  std::cout << "5. Logout" << std::endl;
+}
+
+void mainMenu(UserNode &mainUser){
+  bool flag = true;
+  std::string input;
+  std::string ticker;
+  bool foundStock;
+  int numStocks;
+  float price;
+
+  while (flag){
+    mainMenuDisplay();
+    getline(std::cin, input);
+
+    switch(stoi(input)){
+      case 1:
+        mainUser.displayAccountInfo();
+        break;
+      case 2:
+        std::cout << "Which security would you like to purchase? Enter ticker: ";
+        getline(std::cin, ticker);
+        price = getPrice(ticker);
+        std::cout << "How many shares would you like to purchase? ";
+        getline(std::cin, input);
+        numStocks = stoi(input);
+        if (price*numStocks<mainUser.balance){
+          mainUser.balance -= price*numStocks;
+          mainUser.addUserStock(ticker, numStocks,price,price);
+        }
+        else{
+          std::cout << "You do not have enough funds" << std::endl;
+        }
+        break;
+      case 3:
+        std::cout << "Which security would you like to sell? ";
+        getline(std::cin, ticker);
+        std::cout << "How many shares would you like to sell? ";
+        getline(std::cin, input);
+        numStocks = stoi(input);
+        foundStock = mainUser.sellStock(ticker, numStocks);
+        if (foundStock == false){
+          std::cout << "You do not own that security or do not have enough shares" << std::endl;
+        }
+        break;
+      case 4:
+        std::cout << "Please enter the security ticker for the current spot price: " << std::endl;
+        getline(std::cin, ticker);
+        price = getPrice(ticker);
+        std::cout << "Current spot price of " << ticker << ": " << price << std::endl;
+        break;
+      default:
+        std::cout << mainUser.username << "has successfully logged out." << std::endl;
+        flag = false;
+        break;
+    }
   }
 }

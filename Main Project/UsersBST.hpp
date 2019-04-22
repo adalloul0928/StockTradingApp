@@ -32,6 +32,10 @@ struct UserNode{
    UserNode *leftChild = nullptr;
    UserNode *rightChild = nullptr;
 
+   void displayAccountInfo();
+   void addUserStock(std::string, int, float, float);
+   bool sellStock(std::string, int);
+
 };
 
 class UserTree{

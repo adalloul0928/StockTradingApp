@@ -104,6 +104,36 @@ void UserTree::addStock(std::string username, std::string ticker, int numStocks,
   tempUser->stocks.push_back(tempStock);
 }
 
+void UserNode::addUserStock(std::string ticker, int numStocks, float purchasePrice, float spotPrice){
+  bool flag = false;
+  for (int x = 0; x < stocks.size(); x++){
+    if (stocks[x].ticker == ticker){
+      stocks[x].numStocks += numStocks;
+      flag = true;
+    }
+  }
+  if (flag==false){
+    Stock tempStock(ticker, numStocks, purchasePrice, spotPrice);
+    stocks.push_back(tempStock);
+  }
+}
+
+
+bool UserNode::sellStock(std::string ticker, int numStocks){
+  for (int x = 0; x < stocks.size(); x++){
+    if ((stocks[x].ticker == ticker) && (stocks[x].numStocks >= numStocks)){
+      balance += (numStocks * stocks[x].spotPrice);
+      std::cout << "You have sold " << numStocks << " shares at " << stocks[x].spotPrice << std::endl;
+      stocks[x].numStocks -= numStocks;
+      if (stocks[x].numStocks == 0){
+        stocks.erase(stocks.begin()+x);
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
 
 void UserTree::printStocks(std::string user){
   UserNode *tempUser = search(user);
@@ -111,6 +141,20 @@ void UserTree::printStocks(std::string user){
   std::cout << "---------------------USER SUMMARY---------------------" << std::endl << std::endl;
   for (int x = 0; x < tempUser->stocks.size(); x++){
     tempStock = tempUser->stocks[x];
+    std::cout << "Ticker: " << tempStock.ticker << std::endl;
+    std::cout << "Number of Stock: " << tempStock.numStocks << std::endl;
+    std::cout << "Purchase Price: " << tempStock.purchasePrice << std::endl;
+    std::cout << "Spot Price: " << tempStock.spotPrice << std::endl << std::endl;
+  }
+}
+
+void UserNode::displayAccountInfo(){
+  std::cout << "---------------------ACCOUNT SUMMARY---------------------" << std::endl << std::endl;
+  std::cout << "Account: " << username << std::endl;
+  std::cout << "Balance: " << balance << std::endl << std::endl;
+  Stock tempStock;
+  for (int x = 0; x < stocks.size(); x++){
+    tempStock = stocks[x];
     std::cout << "Ticker: " << tempStock.ticker << std::endl;
     std::cout << "Number of Stock: " << tempStock.numStocks << std::endl;
     std::cout << "Purchase Price: " << tempStock.purchasePrice << std::endl;
